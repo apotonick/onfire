@@ -90,7 +90,7 @@ class OnfireTest < Test::Unit::TestCase
     end
   end
   
-  context "#on with :from for filtering" do
+  context "The #on method" do
     setup do
       @barkeeper   = mock('barkeeper')
       @nice_guest  = mock('nice guest')
@@ -104,20 +104,33 @@ class OnfireTest < Test::Unit::TestCase
       @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'throw out'}
     end
     
-    should "invoke the handler for the nice guest" do
-      @nice_guest.fire :order
-      assert_equal ['be nice'], @barkeeper.list
+    context "with the :from option for filtering" do
+      should "invoke the handler for the nice guest only" do
+        @nice_guest.fire :order
+        assert_equal ['be nice'], @barkeeper.list
+      end
+      
+      should "invoke both handlers for the bad guest only" do
+        @bad_guest.fire :order
+        assert_equal ['ignore', 'throw out'], @barkeeper.list
+      end
+      
+      should "invoke and additional catch-all handler" do
+        @barkeeper.on(:order) {@barkeeper.list << 'have a drink yourself'}
+        @nice_guest.fire :order
+        assert_equal ['be nice', 'have a drink yourself'], @barkeeper.list
+      end
+      
     end
     
-    should "invoke both handlers for the bad guest" do
-      @bad_guest.fire :order
-      assert_equal ['ignore', 'throw out'], @barkeeper.list
+    context "with the :once option" do
+      should "add the handler only once" do
+        
+      end
     end
   end
   
-  context "adding handlers with #on :once => true" do
-    should_eventually "add the handler only once"
-  end
+  
   
   context "stopping events" do
     should_eventually "not invoke any handler above and next to the stopping"
