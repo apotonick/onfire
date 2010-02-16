@@ -90,10 +90,34 @@ class OnfireTest < Test::Unit::TestCase
     end
   end
   
-  context "calling #on with :from" do
-    should_eventually "only be invoked on events from :from"
+  context "#on with :from for filtering" do
+    setup do
+      @barkeeper   = mock('barkeeper')
+      @nice_guest  = mock('nice guest')
+      @bad_guest   = mock('bad guest')
+      
+      @nice_guest.parent = @barkeeper
+      @bad_guest.parent  = @barkeeper
+      
+      @barkeeper.on(:order, :from => 'nice guest')  {@barkeeper.list << 'be nice'}
+      @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'ignore'}
+      @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'throw out'}
+    end
+    
+    should "invoke the handler for the nice guest" do
+      @nice_guest.fire :order
+      assert_equal ['be nice'], @barkeeper.list
+    end
+    
+    should "invoke both handlers for the bad guest" do
+      @bad_guest.fire :order
+      assert_equal ['ignore', 'throw out'], @barkeeper.list
+    end
   end
   
+  context "adding handlers with #on :once => true" do
+    should_eventually "add the handler only once"
+  end
   
   context "stopping events" do
     should_eventually "not invoke any handler above and next to the stopping"

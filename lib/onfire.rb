@@ -3,14 +3,13 @@ require 'onfire/event_table'
 
 module Onfire
   def on(event_type, options={}, &block)
-    table_options = {:event_type => event_type}
+    table_options = {}
+    table_options[:event_type]  = event_type
+    table_options[:source_name] = options[:from] if options[:from]
     
-    ### TODO: add :from/:source_name
     if block_given?
       attach_event_handler(block, table_options)
     end
-    
-    
   end
   
   def fire(event_type)
