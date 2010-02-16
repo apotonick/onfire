@@ -1,11 +1,6 @@
 require 'rubygems'
 require 'shoulda'
-
-### FIXME: handle this with autoloading!
-require File.dirname(__FILE__) + '/../lib/onfire'
-require File.dirname(__FILE__) + '/../lib/onfire/event'
-require File.dirname(__FILE__) + '/../lib/onfire/event_table'
-
+require 'onfire'
 
 class Onfire::EventTable
   def size

@@ -1,8 +1,7 @@
-#require 'onfire/event'
+require 'onfire/event'
+require 'onfire/event_table'
 
 module Onfire
-  VERSION = "0.1.0"
-  
   def on(event_type, options={}, &block)
     table_options = {:event_type => event_type}
     
