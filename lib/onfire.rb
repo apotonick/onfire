@@ -20,6 +20,7 @@ module Onfire
     local_handlers = event_table.all_handlers_for(event.type, event.source.name)
     
     local_handlers.each do |proc|
+      return if event.stopped?
       proc.call(event)
     end
   end

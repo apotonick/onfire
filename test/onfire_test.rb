@@ -90,7 +90,7 @@ class OnfireTest < Test::Unit::TestCase
     end
   end
   
-  context "The #on method" do
+  context "In the bar" do
     setup do
       @barkeeper   = mock('barkeeper')
       @nice_guest  = mock('nice guest')
@@ -98,44 +98,49 @@ class OnfireTest < Test::Unit::TestCase
       
       @nice_guest.parent = @barkeeper
       @bad_guest.parent  = @barkeeper
-      
-      @barkeeper.on(:order, :from => 'nice guest')  {@barkeeper.list << 'be nice'}
-      @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'ignore'}
-      @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'throw out'}
     end
     
-    context "with the :from option for filtering" do
-      should "invoke the handler for the nice guest only" do
-        @nice_guest.fire :order
-        assert_equal ['be nice'], @barkeeper.list
+    context "the #on method" do
+      setup do
+        @barkeeper.on(:order, :from => 'nice guest')  {@barkeeper.list << 'be nice'}
+        @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'ignore'}
+        @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'throw out'}
       end
       
-      should "invoke both handlers for the bad guest only" do
-        @bad_guest.fire :order
-        assert_equal ['ignore', 'throw out'], @barkeeper.list
-      end
-      
-      should "invoke and additional catch-all handler" do
-        @barkeeper.on(:order) {@barkeeper.list << 'have a drink yourself'}
-        @nice_guest.fire :order
-        assert_equal ['be nice', 'have a drink yourself'], @barkeeper.list
-      end
-      
-    end
-    
-    context "with the :once option" do
-      should "add the handler only once" do
+      context "with the :from option for filtering" do
+        should "invoke the handler for the nice guest only" do
+          @nice_guest.fire :order
+          assert_equal ['be nice'], @barkeeper.list
+        end
         
+        should "invoke both handlers for the bad guest only" do
+          @bad_guest.fire :order
+          assert_equal ['ignore', 'throw out'], @barkeeper.list
+        end
+        
+        should "invoke an additional catch-all handler" do
+          @barkeeper.on(:order) {@barkeeper.list << 'have a drink yourself'}
+          @nice_guest.fire :order
+          assert_equal ['be nice', 'have a drink yourself'], @barkeeper.list
+        end 
+      end
+    end
+    
+    
+    context "stopping events" do
+      should "not invoke any handler after the guest kills it" do
+        @nice_guest.on(:order) {@nice_guest.list << 'thirsty?'}
+        @nice_guest.on(:order) do |evt|
+          @nice_guest.list << 'money?'
+          evt.stop!
+        end
+        @barkeeper.on(:order)  {@nice_guest.list << 'draw a beer'}
+        @nice_guest.fire :order
+        
+        assert_equal ['thirsty?', 'money?'], @nice_guest.list
       end
     end
   end
-  
-  
-  
-  context "stopping events" do
-    should_eventually "not invoke any handler above and next to the stopping"
-  end
-  
   
   context "calling #fire" do
     setup do
@@ -148,7 +153,7 @@ class OnfireTest < Test::Unit::TestCase
       assert_equal [], @obj.list
     end
     
-    should "invoke the attached handler" do
+    should "invoke the attached matching handler" do
       @obj.on :click do @obj.list << 1 end
       @obj.fire :click
       

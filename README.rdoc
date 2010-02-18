@@ -1,6 +1,6 @@
 = Overview
 
-Onfire lets all your Ruby objects have observers and bubbling events.
+Have bubbling events and observers in all your Ruby objects.
 
 = LICENSE
 
