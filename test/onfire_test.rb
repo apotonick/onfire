@@ -18,7 +18,7 @@ class OnfireTest < Test::Unit::TestCase
   
   context "including Onfire" do
     should "provide event_table accessors to an emtpy table" do
-      table = mock.send :event_table
+      table = mock.event_table
       assert_kind_of Onfire::EventTable, table
       assert_equal 0, table.size
     end
@@ -39,7 +39,7 @@ class OnfireTest < Test::Unit::TestCase
     
     should "invoke exactly one proc and thus push `1` onto #list" do
       obj = mock
-      obj.send(:event_table).add_handler(lambda{obj.list << 1}, :event_type => :click)
+      obj.event_table.add_handler(lambda{obj.list << 1}, :event_type => :click)
       
       obj.process_event(@event)
       
@@ -48,8 +48,8 @@ class OnfireTest < Test::Unit::TestCase
     
     should "not invoke procs for another event_type" do
       obj = mock
-      obj.send(:event_table).add_handler(lambda{obj.list << 1}, :event_type => :click)
-      obj.send(:event_table).add_handler(lambda{obj.list << 2}, :event_type => :drop) # don't call me!
+      obj.event_table.add_handler(lambda{obj.list << 1}, :event_type => :click)
+      obj.event_table.add_handler(lambda{obj.list << 2}, :event_type => :drop) # don't call me!
       
       obj.process_event(@event)
       
@@ -63,30 +63,32 @@ class OnfireTest < Test::Unit::TestCase
       @event  = Onfire::Event.new(:click, @obj)
     end
     
-    should "add a handler to the event_table when called with a block" do
-      @obj.on :click do
-        @obj.list << 1
+    context "with a block" do
+      should "add a handler to the event_table when called with a block" do
+        @obj.on :click do
+          @obj.list << 1
+        end
+        
+        @obj.process_event(@event)
+        assert_equal [1], @obj.list
       end
       
-      @obj.process_event(@event)
-      assert_equal [1], @obj.list
-    end
-    
-    should "invoke two handlers if called twice" do
-      @obj.on :click do @obj.list << 1 end
-      @obj.on :click do @obj.list << 2 end
-      
-      @obj.process_event(@event)
-      assert_equal [1,2], @obj.list
-    end
-    
-    should "receive the triggering event as parameter" do
-      @obj.on :click do |evt|
-        @obj.list << evt
+      should "invoke two handlers if called twice" do
+        @obj.on :click do @obj.list << 1 end
+        @obj.on :click do @obj.list << 2 end
+        
+        @obj.process_event(@event)
+        assert_equal [1,2], @obj.list
       end
       
-      @obj.process_event(@event)
-      assert_equal [@event], @obj.list
+      should "receive the triggering event as parameter" do
+        @obj.on :click do |evt|
+          @obj.list << evt
+        end
+        
+        @obj.process_event(@event)
+        assert_equal [@event], @obj.list
+      end
     end
   end
   
@@ -101,13 +103,13 @@ class OnfireTest < Test::Unit::TestCase
     end
     
     context "the #on method" do
-      setup do
-        @barkeeper.on(:order, :from => 'nice guest')  {@barkeeper.list << 'be nice'}
-        @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'ignore'}
-        @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'throw out'}
-      end
-      
       context "with the :from option for filtering" do
+        setup do
+          @barkeeper.on(:order, :from => 'nice guest')  {@barkeeper.list << 'be nice'}
+          @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'ignore'}
+          @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'throw out'}
+        end
+      
         should "invoke the handler for the nice guest only" do
           @nice_guest.fire :order
           assert_equal ['be nice'], @barkeeper.list
@@ -122,7 +124,30 @@ class OnfireTest < Test::Unit::TestCase
           @barkeeper.on(:order) {@barkeeper.list << 'have a drink yourself'}
           @nice_guest.fire :order
           assert_equal ['be nice', 'have a drink yourself'], @barkeeper.list
-        end 
+        end
+      end
+      
+      context "with a callable object" do
+        setup do
+          @callable = Class.new.new
+          @callable.instance_eval do
+            def call(event)
+              source = event.source
+              return source.list << 'order from barkeeper' if source.root?
+              source.parent.list << 'order from guest'
+            end
+          end
+        end
+        
+        should "add a handler to the local event_table" do
+          @barkeeper.on :order, :do => @callable
+          
+          @barkeeper.fire :order
+          assert_equal ['order from barkeeper'], @barkeeper.list
+          
+          @nice_guest.fire :order
+          assert_equal ['order from barkeeper', 'order from guest'], @barkeeper.list
+        end
       end
     end
     
@@ -140,6 +165,14 @@ class OnfireTest < Test::Unit::TestCase
         assert_equal ['thirsty?', 'money?'], @nice_guest.list
       end
     end
+    
+    
+    context "#event_table" do
+      should "expose the EventTable to the public" do
+        assert_kind_of ::Onfire::EventTable, @barkeeper.event_table
+      end
+    end
+    
   end
   
   context "calling #fire" do
