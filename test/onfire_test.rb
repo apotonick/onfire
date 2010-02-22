@@ -125,6 +125,19 @@ class OnfireTest < Test::Unit::TestCase
           @nice_guest.fire :order
           assert_equal ['be nice', 'have a drink yourself'], @barkeeper.list
         end
+        
+        should "invoke another handler when :from is nil" do
+          @barkeeper.on(:order, :from => nil) {@barkeeper.list << 'have a drink yourself'}
+          @nice_guest.fire :order
+          assert_equal ['be nice', 'have a drink yourself'], @barkeeper.list
+        end
+        
+        should "invoke :from handlers before it processes catch-all handlers" do
+          @barkeeper.on(:order)                         {@barkeeper.list << 'have a drink yourself'}
+          @barkeeper.on(:order, :from => 'nice guest')  {@barkeeper.list << 'bring out toast'}
+          @nice_guest.fire :order
+          assert_equal ['be nice', 'bring out toast', 'have a drink yourself'], @barkeeper.list
+        end
       end
       
       context "with a callable object" do
