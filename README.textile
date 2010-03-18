@@ -1,0 +1,149 @@
+h1. Onfire
+
+_Have bubbling events and observers in all your Ruby objects._
+
+
+h2. Introduction
+
+If you think "bubbling events" sounds awesome and should definitly be used in your project, you're lame. However, if you answer "yes" to at least one of the following requirements you're in. If not, go and use Ruby's great @Observable@ mixin.
+
+*Do you...?*
+* prefer *decoupled systems*, where observers don't wanna know the observed object (as @Observable#add_observer@ requires)?
+* rather intend to *observe _events_*, not business objects alone?
+* have a *tree-like* data structure? Bubbling events only make sense in a hierarchical environment where observers and event sources form a tree.
+* miss a *stop!* command which prevents the event from further propagation? 
+
+h2. Example
+
+Let's assume you have a set of @User@ objects with roles, like "CEO", "Manager", and "Developer". You just decided to implement some messaging system for the users where developers can complain about wrong management, managers can ignore those warnings from below, and the CEO is trying to control any communication.
+
+<pre>
+    CEO:             bill
+                    |    |
+    Managers:   mike      matz
+                          |  |
+    Developers:        dave  didi  
+</pre>
+
+If @dave@ would complain about a new policy (which implies exclusive usage of Win PCs only) it would bubble up to his manager @matz@ and then to @bill@, who'd fire @dave@ right away.
+
+As @matz@ somehow likes his developers he would try to prevent his boss @bill@ from overhearing the conversation or he would at least try to make the complainment management-compatible. Good guy @matz@.
+
+
+h2. Installation
+
+<pre>
+  $ sudo gem install onfire
+</pre>
+
+
+h2. Usage
+
+First, you extend your @User@ class to be "on fire".
+<pre>
+  class User < ...
+    include Onfire
+</pre>
+
+
+As your @User@ objects don't have a tree structure *you* implement *@#parent@*. That's the *only requirement Onfire has* to the class it's mixed into.
+
+*@#parent@* would return the boss object of the asked instance.
+<pre>
+  dave.parent      # => matz
+  matz.parent      # => bill
+  bill.parent	   # => nil
+</pre>
+
+There's your hierarchical tree structure.
+
+h2. Fireing events
+
+Now @dave@ issues the bad circumstances in his office:
+<pre>
+  dave.fire :thatSucks
+</pre>
+
+So far, nothing would happen as no one in the startup is observing that event.
+
+h2. Responding to events
+
+Anyway, a real CEO should respond to complainments from his subordinates.
+
+<pre>
+  bill.on :thatSucks do { puts "who's that?" }
+</pre>
+
+Now @bill@ would at least find out somebody's crying.
+
+That's right, the *Onfire API* is just the two methods *@#on@* and *@#fire@*. 
+
+
+h2. Bubbling events
+
+@matz@ being a good manager wants to mediate, so he takes part in the game:
+
+<pre>
+  matz.on :thatSucks do { puts "dave, sshhht!" }
+</pre>
+
+would do
+<pre>
+  > dave.fire :thatSucks
+  => "dave, sshhht!"         # by matz
+  => "who's that?"           # by bill
+</pre>
+
+
+h2. Using the @Event@ object
+
+Of course @bill@ wants to find out who's the subversive element, so he just askes the *Event* object.
+
+<pre>
+  bill.on :thatSucks do { |event| event.source.fire! }
+</pre>
+
+That's bad for @dave@, as he's unemployed now.
+
+
+h2. Intercepting events
+
+As he's always been on time, @matz@ just swallows any offending messages for now.
+
+<pre>
+  matz.on :thatSucks do { |event| event.stop! }
+</pre>
+
+That leads to an event which is stopped at @matz@ and wouldn't propagate further up to the big boss.
+
+<pre>
+  > dave.fire :thatSucks
+  => "dave, sshhht!"         # first, by matz
+  => nil                     # second, matz stops the event.
+</pre>
+
+
+
+h2. License
+
+Copyright (c) 2010, Nick Sutterer 
+
+The MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

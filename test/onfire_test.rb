@@ -206,6 +206,14 @@ class OnfireTest < Test::Unit::TestCase
       assert_equal [1], @obj.list
     end
     
+    should "invoke same handlers for :symbol or 'string' event names" do
+      @obj.on :click do @obj.list << 1 end
+      @obj.fire 'click'
+      
+      assert_equal [1], @obj.list
+    end
+    
+    
     should "invoke handlers in the correct order when bubbling" do
       # we use @obj for recording the chat.
       bar   = mock('bar')
