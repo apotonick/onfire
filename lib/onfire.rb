@@ -26,9 +26,7 @@ module Onfire
   end
   
   def process_event(event)
-    local_handlers = event_table.all_handlers_for(event.type, event.source.name)
-    
-    local_handlers.each do |proc|
+    local_event_handlers(event).each do |proc|
       return if event.stopped?
       proc.call(event)
     end
@@ -45,5 +43,10 @@ module Onfire
   protected
     def attach_event_handler(proc, table_options)
       event_table.add_handler(proc, table_options)
+    end
+    
+    # Get all handlers from self for the passed event.
+    def local_event_handlers(event)
+      event_table.all_handlers_for(event.type, event.source)
     end
 end

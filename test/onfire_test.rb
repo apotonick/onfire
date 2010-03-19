@@ -39,7 +39,7 @@ class OnfireTest < Test::Unit::TestCase
     
     should "invoke exactly one proc and thus push `1` onto #list" do
       obj = mock
-      obj.event_table.add_handler(lambda{obj.list << 1}, :event_type => :click)
+      obj.event_table.add_handler(lambda { obj.list << 1 }, :event_type => :click)
       
       obj.process_event(@event)
       
@@ -105,9 +105,9 @@ class OnfireTest < Test::Unit::TestCase
     context "the #on method" do
       context "with the :from option for filtering" do
         setup do
-          @barkeeper.on(:order, :from => 'nice guest')  {@barkeeper.list << 'be nice'}
-          @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'ignore'}
-          @barkeeper.on(:order, :from => 'bad guest')   {@barkeeper.list << 'throw out'}
+          @barkeeper.on(:order, :from => @nice_guest) {@barkeeper.list << 'be nice'}
+          @barkeeper.on(:order, :from => @bad_guest)  {@barkeeper.list << 'ignore'}
+          @barkeeper.on(:order, :from => @bad_guest)  {@barkeeper.list << 'throw out'}
         end
       
         should "invoke the handler for the nice guest only" do
@@ -134,7 +134,7 @@ class OnfireTest < Test::Unit::TestCase
         
         should "invoke :from handlers before it processes catch-all handlers" do
           @barkeeper.on(:order)                         {@barkeeper.list << 'have a drink yourself'}
-          @barkeeper.on(:order, :from => 'nice guest')  {@barkeeper.list << 'bring out toast'}
+          @barkeeper.on(:order, :from => @nice_guest)   {@barkeeper.list << 'bring out toast'}
           @nice_guest.fire :order
           assert_equal ['be nice', 'bring out toast', 'have a drink yourself'], @barkeeper.list
         end
@@ -206,11 +206,11 @@ class OnfireTest < Test::Unit::TestCase
       assert_equal [1], @obj.list
     end
     
-    should "invoke same handlers for :symbol or 'string' event names" do
+    should "not invoke same handlers for :symbol or 'string' event names" do
       @obj.on :click do @obj.list << 1 end
       @obj.fire 'click'
       
-      assert_equal [1], @obj.list
+      assert_equal [], @obj.list
     end
     
     

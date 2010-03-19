@@ -15,7 +15,7 @@ If you think "bubbling events" sounds awesome and should definitly be used in yo
 
 h2. Example
 
-Let's assume you have a set of @User@ objects with roles, like "CEO", "Manager", and "Developer". You just decided to implement some messaging system for the users where developers can complain about wrong management, managers can ignore those warnings from below, and the CEO is trying to control any communication.
+Let's assume you have a set of @User@ objects with roles, like "CEO", "Manager", and "Developer". You just decided to implement some messaging system where developers can complain, managers can ignore, and the CEO is trying to control.
 
 <pre>
     CEO:             bill
@@ -25,9 +25,9 @@ Let's assume you have a set of @User@ objects with roles, like "CEO", "Manager",
     Developers:        dave  didi  
 </pre>
 
-If @dave@ would complain about a new policy (which implies exclusive usage of Win PCs only) it would bubble up to his manager @matz@ and then to @bill@, who'd fire @dave@ right away.
+If _dave_ would complain about a new policy (which implies exclusive usage of Win PCs only) it would bubble up to his manager _matz_ and then to _bill_, who'd fire _dave_ right away.
 
-As @matz@ somehow likes his developers he would try to prevent his boss @bill@ from overhearing the conversation or he would at least try to make the complainment management-compatible. Good guy @matz@.
+As _matz_ somehow likes his developers he would try to prevent his boss _bill_ from overhearing the conversation or make the complainment management-compatible. Good guy _matz_.
 
 
 h2. Installation
@@ -40,6 +40,7 @@ h2. Installation
 h2. Usage
 
 First, you extend your @User@ class to be "on fire".
+
 <pre>
   class User < ...
     include Onfire
@@ -49,6 +50,7 @@ First, you extend your @User@ class to be "on fire".
 As your @User@ objects don't have a tree structure *you* implement *@#parent@*. That's the *only requirement Onfire has* to the class it's mixed into.
 
 *@#parent@* would return the boss object of the asked instance.
+
 <pre>
   dave.parent      # => matz
   matz.parent      # => bill
@@ -59,7 +61,8 @@ There's your hierarchical tree structure.
 
 h2. Fireing events
 
-Now @dave@ issues the bad circumstances in his office:
+Now _dave_ issues the bad circumstances in his office:
+
 <pre>
   dave.fire :thatSucks
 </pre>
@@ -71,23 +74,31 @@ h2. Responding to events
 Anyway, a real CEO should respond to complainments from his subordinates.
 
 <pre>
-  bill.on :thatSucks do { puts "who's that?" }
+  bill.on :thatSucks do puts "who's that?" end
 </pre>
 
-Now @bill@ would at least find out somebody's crying.
+Now _bill_ would at least find out somebody's crying.
 
-That's right, the *Onfire API* is just the two methods *@#on@* and *@#fire@*. 
+<pre>
+  > dave.fire :thatSucks
+  => "who's that?"           # by bill
+</pre>
+
+That's right, the *Onfire API* is just the two public methods 
+* *@#on@* for responding to events and 
+* *@#fire@* for triggering those 
 
 
 h2. Bubbling events
 
-@matz@ being a good manager wants to mediate, so he takes part in the game:
+_matz_ being a good manager wants to mediate, so he takes part in the game:
 
 <pre>
-  matz.on :thatSucks do { puts "dave, sshhht!" }
+  matz.on :thatSucks do puts "dave, sshhht!" end
 </pre>
 
-would do
+Which results in
+
 <pre>
   > dave.fire :thatSucks
   => "dave, sshhht!"         # by matz
@@ -97,24 +108,24 @@ would do
 
 h2. Using the @Event@ object
 
-Of course @bill@ wants to find out who's the subversive element, so he just askes the *Event* object.
+Of course _bill_ wants to find out who's the subversive element, so he just askes the revealing *Event* object.
 
 <pre>
-  bill.on :thatSucks do { |event| event.source.fire! }
+  bill.on :thatSucks do |event| event.source.fire! end
 </pre>
 
-That's bad for @dave@, as he's unemployed now.
+That's bad for _dave_, as he's unemployed now.
 
 
 h2. Intercepting events
 
-As he's always been on time, @matz@ just swallows any offending messages for now.
+As _dave_ has always been on time, _matz_ just swallows any offending messages for now.
 
 <pre>
-  matz.on :thatSucks do { |event| event.stop! }
+  matz.on :thatSucks do |event| event.stop! end
 </pre>
 
-That leads to an event which is stopped at @matz@ and wouldn't propagate further up to the big boss.
+That leads to an event that's stopped at _matz_. It won't propagate further up to the big boss.
 
 <pre>
   > dave.fire :thatSucks
@@ -122,7 +133,78 @@ That leads to an event which is stopped at @matz@ and wouldn't propagate further
   => nil                     # second, matz stops the event.
 </pre>
 
+h2. Organic event filtering
 
+What happens if _mike_ wants to be a good manager, too?
+
+<pre>
+  mike.on :thatSucks do puts "take it easy, dude!" end
+</pre>
+
+When _dave_ starts to cry, there's no _mike_ involved:
+
+<pre>
+  > dave.fire :thatSucks
+  => "dave, sshhht!"         # by matz
+  => nil
+</pre>
+
+Obviously, the @:thatSucks@ event triggered by _dave_ never passes _mike_ as he is on a completely different tree branch. The event travels from _dave_ to _matz_ up to _bill_.
+
+That is dead simple, however it is a clear way to observe only *particular events*. When _mike_ calls @#on@ he limits his attention to events from his branch - his developers - only.
+
+h2. Event source filtering
+
+After a while discontent moves over to _didi_.
+
+<pre>
+  > didi.fire :thatSucks
+  => "dave, sshhht!"         # first, by matz
+  => nil
+</pre>
+
+_didi_ is a lamer and _matz_ always prefered working with _dave_ so he changes his tune.
+
+<pre>
+  matz.on :thatSucks do |event| event.stop! if event.source == dave end
+</pre>
+
+That's unfair!
+
+<pre>
+  > dave.fire :thatSucks
+  => "dave, sshhht!"         # by matz
+  => nil                     # dave still got a job.
+  > didi.fire :thatSucks
+  => "fired!"                # didi's event travels up to boss who fires him.
+</pre>
+
+_matz_ is lazy, so he explicity lets Onfire handle the filtering:
+
+<pre>
+  matz.on :thatSucks, :from => dave do |event| event.stop! end
+</pre>
+
+which will result in the same bad outcome for _didi_.
+
+h2. Responding with instance methods
+
+Nevertheless _matz_ is trying to keep himself clean, so he refactors the handler block to an instance method.
+
+<pre>
+  matz.instance_eval do
+    def shield_dave(event)
+      event.stop!
+    end
+  end
+  
+  matz.on :thatSucks, :from => dave, :do => :shield_dave
+</pre>
+
+Awesome shit!
+
+h2. Who's using it?
+* Right now, Onfire is used as clean, small event engine in "Apotomo":http://github.com/apotonick/apotomo, that's stateful widgets for Ruby and Rails.
 
 h2. License
 
