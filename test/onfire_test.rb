@@ -39,7 +39,7 @@ class OnfireTest < Test::Unit::TestCase
     
     should "invoke exactly one proc and thus push `1` onto #list" do
       obj = mock
-      obj.event_table.add_handler(lambda { obj.list << 1 }, :event_type => :click)
+      obj.event_table.add_handler(lambda { |evt| obj.list << 1 }, :event_type => :click)
       
       obj.process_event(@event)
       
@@ -48,8 +48,8 @@ class OnfireTest < Test::Unit::TestCase
     
     should "not invoke procs for another event_type" do
       obj = mock
-      obj.event_table.add_handler(lambda{obj.list << 1}, :event_type => :click)
-      obj.event_table.add_handler(lambda{obj.list << 2}, :event_type => :drop) # don't call me!
+      obj.event_table.add_handler(lambda { |evt| obj.list << 1 }, :event_type => :click)
+      obj.event_table.add_handler(lambda { |evt| obj.list << 2 }, :event_type => :drop) # don't call me!
       
       obj.process_event(@event)
       

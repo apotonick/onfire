@@ -108,7 +108,7 @@ Which results in
 
 h2. Using the @Event@ object
 
-Of course _bill_ wants to find out who's the subversive element, so he just askes the revealing *Event* object.
+Of course _bill_ wants to find out who's the subversive element, so he just asks the revealing *Event* object.
 
 <pre>
   bill.on :thatSucks do |event| event.source.fire! end
