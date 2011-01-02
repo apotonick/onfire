@@ -1,0 +1,4 @@
+h2. 0.1.1
+
+h3. Bugfixes
+  * @#fire@ now accepts additional payload data which is added to the event.
