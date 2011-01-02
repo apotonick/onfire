@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require 'test_helper'
 
 class OnfireTest < Test::Unit::TestCase
   def mock(name='my_mock')
