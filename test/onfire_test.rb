@@ -239,6 +239,18 @@ class OnfireTest < Test::Unit::TestCase
       assert_equal ['A beer!', 'There you go.', 'Hurry up, man!', 'Thanks.'], @obj.list
     end
     
+    should "allow appending arbitrary data to the event" do
+      # we use @obj for recording the chat.
+      bar   = mock('bar')
+      
+      bar.on :thirsty do |evt|
+        @obj.list << "You look like #{evt.data[:who]} need a drink."
+      end
+      
+      bar.fire :thirsty, :who => "I"
+      
+      assert_equal ["You look like I need a drink."], @obj.list
+    end
   end
   
   

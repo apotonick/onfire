@@ -14,8 +14,8 @@ module Onfire
     attach_event_handler(options[:do], table_options)
   end
   
-  def fire(event_type)
-    bubble_event Event.new(event_type, self)
+  def fire(event_type, data={})
+    bubble_event Event.new(event_type, self, data)
   end
   
   def bubble_event(event)

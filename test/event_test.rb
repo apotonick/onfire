@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require 'test_helper'
 
 class EventTest < Test::Unit::TestCase
   context "An event" do
@@ -7,6 +7,7 @@ class EventTest < Test::Unit::TestCase
       
       assert_equal :click,  event.type
       assert_equal :source, event.source
+      assert_nil  event.data
     end
     
     should "be fine without any parameters at all" do
@@ -15,6 +16,14 @@ class EventTest < Test::Unit::TestCase
       assert_nil  event.type
       assert_nil  event.source
       assert_nil  event.data
+    end
+    
+    should "accept payload data" do
+      event = Onfire::Event.new(:drag, :source, :target => 'me')
+      
+      assert_equal :drag,   event.type
+      assert_equal :source, event.source
+      assert_equal({:target => 'me'}, event.data)
     end
     
     should "stop if needed" do
