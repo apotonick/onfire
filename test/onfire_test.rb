@@ -190,7 +190,7 @@ class OnfireTest < Test::Unit::TestCase
   
   context "calling #fire" do
     setup do
-      @obj    = mock
+      @obj = mock
     end
     
     should "be of no relevance when there are no handlers attached" do
@@ -250,6 +250,36 @@ class OnfireTest < Test::Unit::TestCase
       bar.fire :thirsty, :who => "I"
       
       assert_equal ["You look like I need a drink."], @obj.list
+    end
+    
+    # FUNCTIONAL: (onfire context)
+    context "#event_for" do
+      setup do
+        @obj.on :thirsty do |evt|
+          @obj.list << evt
+        end
+      end
+      
+      should "respect #event_for" do
+        @obj.fire :thirsty
+        
+        assert_kind_of Onfire::Event, @obj.list.first
+      end
+      
+      # FUNCTIONAL: (onfire context)
+      should "respect an overridden #event_for" do
+        class LocalEvent < Onfire::Event
+        end
+        
+        @obj.instance_eval do
+          def event_for(*args)
+            LocalEvent.new(*args)
+          end
+        end
+        @obj.fire :thirsty
+        
+        assert_kind_of LocalEvent, @obj.list.first
+      end
     end
   end
   

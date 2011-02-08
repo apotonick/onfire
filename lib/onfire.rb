@@ -15,7 +15,7 @@ module Onfire
   end
   
   def fire(event_type, data={})
-    bubble_event Event.new(event_type, self, data)
+    bubble_event event_for(event_type, self, data)
   end
   
   def bubble_event(event)
@@ -40,13 +40,18 @@ module Onfire
     @event_table ||= Onfire::EventTable.new
   end
     
-  protected
-    def attach_event_handler(proc, table_options)
-      event_table.add_handler(proc, table_options)
-    end
-    
-    # Get all handlers from self for the passed event.
-    def local_event_handlers(event)
-      event_table.all_handlers_for(event.type, event.source)
-    end
+protected
+  def attach_event_handler(proc, table_options)
+    event_table.add_handler(proc, table_options)
+  end
+  
+  # Get all handlers from self for the passed event.
+  def local_event_handlers(event)
+    event_table.all_handlers_for(event.type, event.source)
+  end
+  
+  # Factory method for creating the event. Override if you want your own event.
+  def event_for(*args)
+    Event.new(*args)
+  end
 end
