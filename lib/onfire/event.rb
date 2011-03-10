@@ -1,6 +1,7 @@
 module Onfire
-  # An Event is born in #fire and is passed up the ancestor chain of the triggering datastructure.
-  # It carries a <tt>type</tt>, the fireing widget <tt>source</tt> and arbitrary payload <tt>data</tt>.
+  # An event carries a type, source, and optional payload. Calling #bubble! it starts at 
+  # its source and traverses up the hierarchy using #parent. 
+  # On every node it calls #handlers_for_event on the node while calling returned procs.
   class Event
     
     attr_accessor :type, :source, :data
