@@ -5,11 +5,7 @@ module Onfire
   def on(event_type, options={}, &block)
     options[:event_type] = event_type
     
-    if block_given?
-      event_table.add_handler(proc, options) and return
-    end
-    
-    event_table.add_handler(options[:do], options)
+    event_table.add_handler(block || options[:do], options)
   end
   
   def fire(event_type, data={})
