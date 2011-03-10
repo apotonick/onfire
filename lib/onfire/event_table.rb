@@ -9,7 +9,7 @@ module Onfire
     
     def add_handler(handler, opts)
       event_type    = opts[:event_type]
-      source_name   = opts[:source_name] || nil
+      source_name   = opts[:from] || nil
       
       handlers_for(event_type, source_name) << handler
     end
