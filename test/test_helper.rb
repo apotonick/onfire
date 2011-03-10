@@ -9,3 +9,18 @@ class Onfire::EventTable
     end || 0
   end
 end
+
+class Test::Unit::TestCase
+  def mock(name='my_mock')
+    obj = Class.new do
+      include Onfire
+      
+      attr_accessor :list, :name, :parent
+      
+      def initialize(name)
+        @name = name
+        @list = []
+      end
+    end.new(name)
+  end
+end

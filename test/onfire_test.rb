@@ -1,21 +1,6 @@
 require 'test_helper'
 
 class OnfireTest < Test::Unit::TestCase
-  def mock(name='my_mock')
-    obj = Class.new do
-      attr_accessor :list
-      attr_accessor :name
-      attr_accessor :parent
-      
-      include Onfire
-      
-      def initialize(name)
-        @name = name
-        @list = []
-      end
-    end.new(name)
-  end
-  
   context "including Onfire" do
     should "provide event_table accessors to an emtpy table" do
       table = mock.event_table
