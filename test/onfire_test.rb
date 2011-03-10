@@ -70,7 +70,7 @@ class OnfireTest < Test::Unit::TestCase
         end
         
         should "add a handler to the local event_table" do
-          @barkeeper.on :order, :do => @callable
+          @barkeeper.on :order, :call => @callable
           
           @barkeeper.fire :order
           assert_equal ['order from barkeeper'], @barkeeper.list

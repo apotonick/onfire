@@ -2,6 +2,7 @@ h2. 0.2.0
 
 h3. Changes
   * Bubbling now happens in Event. Removed Onfire#bubble_event and friends. This is a lot more flexible and simpler.
+  * Changed option for @#on@: @:do@ is now @:call@.
 
 
 h2. 0.1.2
