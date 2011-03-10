@@ -6,10 +6,10 @@ module Onfire
     options[:event_type] = event_type
     
     if block_given?
-      return attach_event_handler(block, options)
+      event_table.add_handler(proc, options) and return
     end
     
-    attach_event_handler(options[:do], options)
+    event_table.add_handler(options[:do], options)
   end
   
   def fire(event_type, data={})
@@ -26,10 +26,6 @@ module Onfire
   end
   
 protected
-  def attach_event_handler(proc, table_options)
-    event_table.add_handler(proc, table_options)
-  end
-  
   # Factory method for creating the event. Override if you want your own event.
   def event_for(*args)
     Event.new(*args)
