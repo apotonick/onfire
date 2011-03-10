@@ -15,10 +15,10 @@ class EventTableTest < Test::Unit::TestCase
     end
     
     should "return handlers in the same order as they were added" do
-      @head.add_handler :drink,         :from => :stomach, :event_type => :hungry
-      @head.add_handler :eat,           :from => :stomach, :event_type => :hungry
-      @head.add_handler :sip,           :from => :mouth,   :event_type => :dry
-      @head.add_handler :have_desert,                             :event_type => :hungry
+      @head.add_handler :drink,         :from => :stomach,  :event_type => :hungry
+      @head.add_handler :eat,           :from => :stomach,  :event_type => :hungry
+      @head.add_handler :sip,           :from => :mouth,    :event_type => :dry
+      @head.add_handler :have_desert,                       :event_type => :hungry
       
       assert_equal [:sip], @head.handlers_for(:dry, :mouth)
       assert_equal [:sip], @head.all_handlers_for(:dry, :mouth)
