@@ -82,21 +82,6 @@ class OnfireTest < Test::Unit::TestCase
     end
     
     
-    context "stopping events" do
-      should "not invoke any handler after the guest kills it" do
-        @nice_guest.on(:order) {@nice_guest.list << 'thirsty?'}
-        @nice_guest.on(:order) do |evt|
-          @nice_guest.list << 'money?'
-          evt.stop!
-        end
-        @barkeeper.on(:order)  {@nice_guest.list << 'draw a beer'}
-        @nice_guest.fire :order
-        
-        assert_equal ['thirsty?', 'money?'], @nice_guest.list
-      end
-    end
-    
-    
     context "#event_table" do
       should "expose the EventTable to the public" do
         assert_kind_of ::Onfire::EventTable, @barkeeper.event_table

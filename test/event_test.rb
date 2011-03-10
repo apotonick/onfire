@@ -109,5 +109,21 @@ class EventFunctionalTest < Test::Unit::TestCase
       
       assert_equal %w(Cheers! Enjoy. Hey! Thanks.), list
     end
+    
+    should "not invoke any handler after being stopped" do
+      @guest.parent = @barkeeper
+      
+      @barkeeper.on :cheers do |evt|
+        evt.data[:list] << "Thanks!" 
+      end
+      
+      @guest.on :cheers do |evt|
+        evt.data[:list] << "yo!"
+        evt.stop!
+      end
+      
+      @event.bubble!
+      assert_equal %w(yo!), @event.data[:list]
+    end
   end
 end

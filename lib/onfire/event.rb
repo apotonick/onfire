@@ -26,7 +26,6 @@ module Onfire
         # in a real visitor pattern, the visited would call #process_node.
         begin process_node(node) end while node = node.parent
       end
-      ### FIXME: bug: won't stop if stop! but parent
       
       def process_node(node)
         node.handlers_for_event(self).each do |proc|
