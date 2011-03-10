@@ -9,74 +9,6 @@ class OnfireTest < Test::Unit::TestCase
     end
   end
   
-  context "#process_event" do
-    setup do
-      @event = Onfire::Event.new(:click, mock)
-    end
-    
-    
-    should "not fill #list as there are no event handlers attached" do
-      obj = mock
-      obj.process_event(@event)
-      
-      assert_equal [], obj.list
-    end
-    
-    should "invoke exactly one proc and thus push `1` onto #list" do
-      obj = mock
-      obj.event_table.add_handler(lambda { |evt| obj.list << 1 }, :event_type => :click)
-      
-      obj.process_event(@event)
-      
-      assert_equal [1], obj.list
-    end
-    
-    should "not invoke procs for another event_type" do
-      obj = mock
-      obj.event_table.add_handler(lambda { |evt| obj.list << 1 }, :event_type => :click)
-      obj.event_table.add_handler(lambda { |evt| obj.list << 2 }, :event_type => :drop) # don't call me!
-      
-      obj.process_event(@event)
-      
-      assert_equal [1], obj.list
-    end
-  end
-  
-  context "calling #on" do
-    setup do
-      @obj    = mock
-      @event  = Onfire::Event.new(:click, @obj)
-    end
-    
-    context "with a block" do
-      should "add a handler to the event_table when called with a block" do
-        @obj.on :click do
-          @obj.list << 1
-        end
-        
-        @obj.process_event(@event)
-        assert_equal [1], @obj.list
-      end
-      
-      should "invoke two handlers if called twice" do
-        @obj.on :click do @obj.list << 1 end
-        @obj.on :click do @obj.list << 2 end
-        
-        @obj.process_event(@event)
-        assert_equal [1,2], @obj.list
-      end
-      
-      should "receive the triggering event as parameter" do
-        @obj.on :click do |evt|
-          @obj.list << evt
-        end
-        
-        @obj.process_event(@event)
-        assert_equal [@event], @obj.list
-      end
-    end
-  end
-  
   context "In the bar" do
     setup do
       @barkeeper   = mock('barkeeper')
@@ -131,7 +63,7 @@ class OnfireTest < Test::Unit::TestCase
           @callable.instance_eval do
             def call(event)
               source = event.source
-              return source.list << 'order from barkeeper' if source.root?
+              return source.list << 'order from barkeeper' unless source.parent
               source.parent.list << 'order from guest'
             end
           end
@@ -178,12 +110,6 @@ class OnfireTest < Test::Unit::TestCase
       @obj = mock
     end
     
-    should "be of no relevance when there are no handlers attached" do
-      @obj.fire :click
-      
-      assert_equal [], @obj.list
-    end
-    
     should "invoke the attached matching handler" do
       @obj.on :click do @obj.list << 1 end
       @obj.fire :click
@@ -196,32 +122,6 @@ class OnfireTest < Test::Unit::TestCase
       @obj.fire 'click'
       
       assert_equal [], @obj.list
-    end
-    
-    
-    should "invoke handlers in the correct order when bubbling" do
-      # we use @obj for recording the chat.
-      bar   = mock('bar')
-      guest = mock('guest')
-      
-      guest.parent = bar
-      guest.on :thirsty do
-        @obj.list << 'A beer!'
-        guest.fire :order
-      end
-      guest.on :thirsty do
-        @obj.list << 'Hurry up, man!'
-      end
-      bar.on :thirsty do
-        @obj.list << 'Thanks.'
-      end
-      bar.on :order do
-        @obj.list << 'There you go.'
-      end
-      
-      guest.fire :thirsty
-      
-      assert_equal ['A beer!', 'There you go.', 'Hurry up, man!', 'Thanks.'], @obj.list
     end
     
     should "allow appending arbitrary data to the event" do
@@ -267,21 +167,4 @@ class OnfireTest < Test::Unit::TestCase
       end
     end
   end
-  
-  
-  context "#root?" do
-    setup do
-      @obj    = mock
-    end
-    
-    should "return false if we got parents" do
-      @obj.parent = :daddy
-      assert !@obj.root?
-    end
-    
-    should "return true if we're at the top" do
-      assert @obj.root?
-    end
-  end
-  
 end
