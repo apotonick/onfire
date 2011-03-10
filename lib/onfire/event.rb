@@ -5,7 +5,7 @@ module Onfire
     
     attr_accessor :type, :source, :data
     
-    def initialize(type=nil, source=nil, data=nil)
+    def initialize(type, source, data=nil)
       @type       = type
       @source     = source
       @data       = data
