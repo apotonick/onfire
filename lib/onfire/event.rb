@@ -20,21 +20,26 @@ module Onfire
       @stopped = true
     end
     
-    def bubble!
-      node = source
-      # in a real visitor pattern, the visited would call #process_node.
-      begin process_node(node) end while node = node.parent
-    end
-    
-    def process_node(node) # usually called #visit.
-      node.handlers_for_event(self).each do |proc|
-        return if stopped?
-        call_handler(proc)
+    module ProcessingMethods
+      def bubble!
+        node = source
+        # in a real visitor pattern, the visited would call #process_node.
+        begin process_node(node) end while node = node.parent
+      end
+      ### FIXME: bug: won't stop if stop! but parent
+      
+      def process_node(node)
+        node.handlers_for_event(self).each do |proc|
+          return if stopped?
+          call_handler(proc, node)
+        end
+      end
+      
+      def call_handler(proc, node)
+        proc.call(self)
       end
     end
     
-    def call_handler(proc)
-      proc.call(self)
-    end
+    include ProcessingMethods
   end
 end
