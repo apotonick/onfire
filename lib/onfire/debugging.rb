@@ -6,6 +6,11 @@ module Onfire
       end
       
       module ClassMethods
+        # Blocks added with #debug are executed on every node while traversing up.
+        #
+        #   Event.debug do |node, evt|
+        #     puts "traversing #{node}"
+        #   end
         def debug(&block)
           debug_blocks << block
         end
@@ -23,13 +28,10 @@ module Onfire
         super
       end
       
-      
+      # Currently unused.
       def call_handler(proc, node)
         super
       end
     end
-  end
-  
-  module Debugging
   end
 end
