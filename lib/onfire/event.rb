@@ -19,13 +19,5 @@ module Onfire
     def stop!
       @stopped = true
     end
-    
-    ### FIXME: what about serialization? should we simply forget the source?
-    def _dump(depth)
-      ""
-    end
-    def self._load(str)
-      ::Onfire::Event.new
-    end
   end
 end
